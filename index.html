@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web editor đối phó với giáo viên tin HDB</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        .editor-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 2px;
+        }
+        .content {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .editor {
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            padding: 15px;
+            min-height: 400px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            position: relative;
+        }
+        .block-menu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .block-menu button {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .table-options, .list-options {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .table-options input {
+            padding: 5px;
+        }
+        .table-options label {
+            font-size: 12px; /* Giảm kích cỡ chữ của label */
+        }
+        .table-options button, 
+        .table-options label {
+            font-size: inherit; /* Đặt cỡ nút theo cỡ chữ */
+            padding: 1px 3px; /* Thu nhỏ khoảng cách */
+            cursor: pointer;
+            width: 50%; /* Nút trải đều theo chiều ngang */
+            text-align: left; /* Căn trái để gọn */
+        }
+        .context-menu {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .context-menu button {
+            display: block;
+            width: 100%;
+            padding: 5px 10px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            text-align: left;
+        }
+        .context-menu button:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="content">
+
+    <h2>Web editor by 12a12 k45 THPT Hoài Đức B V4.1.9</h2>
+    <div class="format-buttons">
+        <button onclick="formatText('bold')">B</button>
+        <button onclick="formatText('italic')">I</button>
+        <button onclick="formatText('underline')">U</button>
+        <button onclick="formatText('line-through')">U1</button>
+        <button onclick="formatText('overline')">U2</button>
+        <button onclick="formatText('subscript')">T</button>
+        <button onclick="formatText('superscript')">T1</button>
+    </div>
+
+    <div class="editor-container">
+        <div class="table-options" id="tableOptions">
+            <label>Colspan: <input type="number" id="colspan" min="1" value="1"></label>
+            <label>Rowspan: <input type="number" id="rowspan" min="1" value="1"></label>
+            <button onclick="applyCellOptions()">Apply to Cell</button>
+            <button onclick="addTableRow()">Add Row</button>
+            <button onclick="addTableColumn()">Add Column</button>
+            <button onclick="deleteCell()">Delete Cell</button>
+            <button onclick="toggleCellTag()">Toggle th/td</button>
+            <button onclick="clearCellContent()">Clear Content</button>
+        </div>
+    
+        <div id="editor" class="editor" contenteditable="true"></div>
+    </div>
+
+    <div class="block-menu" id="blockMenu">
+        <button onclick="addTag('p')">Paragraph (p)</button>
+        <button onclick="addTag('h1')">Header 1 (h1)</button>
+        <button onclick="addTag('h2')">Header 2 (h2)</button>
+        <button onclick="addTag('h3')">Header 3 (h3)</button>
+        <button onclick="addTag('h4')">Header 4 (h4)</button>
+        <button onclick="addTag('h5')">Header 5 (h5)</button>
+        <button onclick="addTag('h6')">Header 6 (h6)</button>
+        <button onclick="addTag('b')">Bold (b)</button>
+        <button onclick="addTag('i')">Italic (i)</button>
+        <button onclick="addTag('u')">Underline (u)</button>
+        <button onclick="startList('ul')">Unordered List (ul)</button>
+        <button onclick="startList('ol')">Ordered List (ol)</button>
+        <button onclick="addListItem()">Add List Item (li)</button>
+        <button id="finishListButton" onclick="finishList()" style="display:none;">Finish List</button>
+        <button onclick="addTag('blockquote')">Blockquote</button>
+        <button onclick="addTag('code')">Code</button>
+        <button onclick="addTable()">Table</button>
+    </div>
+    <button onclick="generateHTML()">Generate HTML</button>
+
+    <div class="block-menu" id="blockMenu">
+        <button onclick="addTable()">Add Table</button>
+    </div>
+
+    <div class="list-options" id="listOptions">
+        <button onclick="addListItem()">Add List Item</button>
+        <button onclick="finishList()">Finish List</button>
+    </div>
+
+    <div class="context-menu" id="contextMenu">
+        <button onclick="deleteCell()">Delete Cell</button>
+    </div>
+</div>
+
+<script src="code.js"></script>
+
+</body>
+</html>
