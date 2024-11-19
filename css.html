@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Editor by Nguyễn Hữu Huy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #f3f3f3;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .html-input {
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .html-input textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+        }
+        .preview-container {
+            display: flex;
+            flex-direction: column;
+            width: 70%;
+            gap: 20px;
+        }
+        .preview {
+            flex-grow: 1;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: auto;
+            position: relative;
+            height: 700px;
+        }
+        .css-editor-container {
+            display: flex;
+            flex-direction: column;
+            width: 30%;
+            gap: 20px;
+        }
+        .css-editor {
+            width: 100%;
+            height: 500px; /* Đặt chiều cao cố định cho CSS Editor */
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow-y: auto; /* Thêm thanh cuộn dọc */
+        }
+        .css-editor h3 {
+            margin-top: 0;
+        }
+        .css-editor .section {
+            margin-bottom: 20px;
+        }
+        .css-editor .section label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .css-editor .section input,
+        .css-editor .section select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .css-editor .section .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        .css-editor .section .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position the tooltip above the text */
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .css-editor .section .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .output-container {
+            margin-top: 20px;
+            width: 100%;
+        }
+        .output-container textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS Editor by Nguyễn Hữu Huy</h1>
+    <div class="container">
+        <div class="html-input">
+            <h2>HTML Input</h2>
+            <textarea id="htmlInput" placeholder="Enter your HTML code here..."></textarea>
+            <button onclick="updatePreview()">Update Preview</button>
+        </div>
+        <div class="preview-container">
+            <div class="preview" id="preview">
+                <h2>Preview</h2>
+                <div id="previewContent"></div>
+            </div>
+            <button onclick="generateHTML()">Generate HTML</button>
+            <label>
+                <input type="checkbox" id="globalStyle"> Apply global styles
+            </label>
+            <div class="output-container">
+                <h2>HTML Output</h2>
+                <textarea id="htmlOutput" readonly></textarea>
+            </div>
+        </div>
+        <div class="css-editor-container">
+            <div class="css-editor" id="cssEditor">
+                <h3>CSS Editor</h3>
+                <div class="section">
+                    <h4>Color</h4>
+                    <label for="color">Color:</label>
+                    <input type="color" id="color" onchange="updateCSS('color', this.value)">
+                </div>
+                <div class="section">
+                    <h4>Background và Borders</h4>
+                    <label for="backgroundColor">Background Color:</label>
+                    <input type="color" id="backgroundColor" onchange="updateCSS('background-color', this.value)">
+                    <label for="border">Border:</label>
+                    <input type="text" id="border" placeholder="e.g., 1px solid #000" onchange="updateCSS('border', this.value)">
+                </div>
+                <div class="section">
+                    <h4>Box Model</h4>
+                    <label for="width" class="tooltip">Width:
+                        <span class="tooltiptext">Chiều rộng của phần tử</span>
+                    </label>
+                    <input type="text" id="width" placeholder="e.g., 100px" onchange="updateCSS('width', this.value)">
+                    <label for="height" class="tooltip">Height:
+                        <span class="tooltiptext">Chiều cao của phần tử</span>
+                    </label>
+                    <input type="text" id="height" placeholder="e.g., 100px" onchange="updateCSS('height', this.value)">
+                    <label for="padding" class="tooltip">Padding:
+                        <span class="tooltiptext">Khoảng cách bên trong phần tử</span>
+                    </label>
+                    <input type="text" id="padding" placeholder="e.g., 10px" onchange="updateCSS('padding', this.value)">
+                    <label for="margin" class="tooltip">Margin:
+                        <span class="tooltiptext">Khoảng cách bên ngoài phần tử</span>
+                    </label>
+                    <input type="text" id="margin" placeholder="e.g., 10px" onchange="updateCSS('margin', this.value)">
+                    <label for="borderColor" class="tooltip">Border Color:
+                        <span class="tooltiptext">Màu viền của phần tử</span>
+                    </label>
+                    <input type="color" id="borderColor" onchange="updateCSS('border-color', this.value)">
+                    <label for="borderWidth" class="tooltip">Border Width:
+                        <span class="tooltiptext">Độ dày viền của phần tử</span>
+                    </label>
+                    <input type="text" id="borderWidth" placeholder="e.g., 1px" onchange="updateCSS('border-width', this.value)">
+                    <label for="borderStyle" class="tooltip">Border Style:
+                        <span class="tooltiptext">Kiểu viền của phần tử</span>
+                    </label>
+                    <select id="borderStyle" onchange="updateCSS('border-style', this.value)">
+                        <option value="none">None</option>
+                        <option value="solid">Solid</option>
+                        <option value="dashed">Dashed</option>
+                        <option value="dotted">Dotted</option>
+                        <option value="double">Double</option>
+                        <option value="groove">Groove</option>
+                        <option value="ridge">Ridge</option>
+                        <option value="inset">Inset</option>
+                        <option value="outset">Outset</option>
+                    </select>
+                    <label for="borderRadius" class="tooltip">Border Radius:
+                        <span class="tooltiptext">Bo góc khung của phần tử</span>
+                    </label>
+                    <input type="text" id="borderRadius" placeholder="e.g., 5px" onchange="updateCSS('border-radius', this.value)">
+                </div>
+                <div class="section">
+                    <h4>Text</h4>
+                    <label for="fontFamily" class="tooltip">Font Family:
+                        <span class="tooltiptext">Phông chữ của phần tử</span>
+                    </label>
+                    <input type="text" id="fontFamily" placeholder="e.g., Arial, sans-serif" onchange="updateCSS('font-family', this.value)">
+                    <label for="fontSize" class="tooltip">Font Size:
+                        <span class="tooltiptext">Cỡ chữ của phần tử</span>
+                    </label>
+                    <input type="text" id="fontSize" placeholder="e.g., 16px" onchange="updateCSS('font-size', this.value)">
+                </div>
+                <!-- Add more sections for other CSS properties as needed -->
+            </div>
+        </div>
+    </div>
+    <script>
+        let selectedElement = null;
+
+        function updatePreview() {
+            const htmlInput = document.getElementById('htmlInput').value;
+            const previewContent = document.getElementById('previewContent');
+            previewContent.innerHTML = htmlInput;
+            addHoverListeners();
+        }
+
+        function addHoverListeners() {
+            const elements = document.querySelectorAll('#previewContent *');
+            elements.forEach(element => {
+                element.addEventListener('mouseover', () => {
+                    highlightElement(element);
+                });
+                element.addEventListener('mouseout', () => {
+                    removeHighlight(element);
+                });
+                element.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectElement(element);
+                });
+            });
+        }
+
+        function highlightElement(element) {
+            element.style.outline = '2px solid #0078d4';
+        }
+
+        function removeHighlight(element) {
+            element.style.outline = '';
+        }
+
+        function selectElement(element) {
+            if (selectedElement) {
+                selectedElement.style.outline = '';
+            }
+            selectedElement = element;
+            element.style.outline = '2px solid #ff0000';
+            updateCSSEditor();
+        }
+
+        function updateCSSEditor() {
+            if (!selectedElement) return;
+            document.getElementById('color').value = rgbToHex(window.getComputedStyle(selectedElement).color);
+            document.getElementById('backgroundColor').value = rgbToHex(window.getComputedStyle(selectedElement).backgroundColor);
+            document.getElementById('border').value = window.getComputedStyle(selectedElement).border;
+            document.getElementById('width').value = window.getComputedStyle(selectedElement).width;
+            document.getElementById('height').value = window.getComputedStyle(selectedElement).height;
+            document.getElementById('padding').value = window.getComputedStyle(selectedElement).padding;
+            document.getElementById('margin').value = window.getComputedStyle(selectedElement).margin;
+            document.getElementById('borderColor').value = rgbToHex(window.getComputedStyle(selectedElement).borderColor);
+            document.getElementById('borderWidth').value = window.getComputedStyle(selectedElement).borderWidth;
+            document.getElementById('borderStyle').value = window.getComputedStyle(selectedElement).borderStyle;
+            document.getElementById('borderRadius').value = window.getComputedStyle(selectedElement).borderRadius;
+            document.getElementById('fontFamily').value = window.getComputedStyle(selectedElement).fontFamily;
+            document.getElementById('fontSize').value = window.getComputedStyle(selectedElement).fontSize;
+        }
+
+        function updateCSS(property, value) {
+            if (!selectedElement) return;
+            selectedElement.style[property] = value;
+        }
+
+        function rgbToHex(rgb) {
+            const result = rgb.match(/\d+/g);
+            return `#${((1 << 24) + (parseInt(result[0]) << 16) + (parseInt(result[1]) << 8) + parseInt(result[2])).toString(16).slice(1)}`;
+        }
+
+        function generateHTML() {
+            const previewContent = document.getElementById('previewContent');
+            const globalStyle = document.getElementById('globalStyle').checked;
+            let htmlOutput = '';
+
+            if (globalStyle) {
+                let styles = '';
+                const elements = previewContent.querySelectorAll('*');
+                elements.forEach(element => {
+                    const style = element.getAttribute('style');
+                    if (style) {
+                        const tagName = element.tagName.toLowerCase();
+                        styles += `${tagName} { ${style} }\n`;
+                        element.removeAttribute('style');
+                    }
+                });
+                htmlOutput = `<html>\n<head>\n<style>\n${styles}</style>\n</head>\n<body>\n${previewContent.innerHTML}\n</body>\n</html>`;
+            } else {
+                htmlOutput = `<html>\n<head>\n</head>\n<body>\n${previewContent.innerHTML}\n</body>\n</html>`;
+            }
+
+            document.getElementById('htmlOutput').value = htmlOutput;
+        }
+    </script>
+</body>
+</html>
