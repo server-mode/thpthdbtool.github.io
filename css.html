@@ -39,6 +39,7 @@
             flex-direction: column;
             width: 70%;
             gap: 20px;
+            position: relative;
         }
         .preview {
             flex-grow: 1;
@@ -49,6 +50,46 @@
             overflow: auto;
             position: relative;
             height: 700px;
+            resize: both; /* Cho phép thay đổi kích thước */
+        }
+        .resizer {
+            position: absolute;
+            width: 10px;
+            height: 100%;
+            background: #0078d4;
+            cursor: ew-resize;
+        }
+        .resizer.vertical {
+            width: 100%;
+            height: 10px;
+            cursor: ns-resize;
+        }
+        .resizer.left {
+            top: 0;
+            left: -5px;
+        }
+
+
+
+        #bg-controls,
+#shadow-controls {
+  margin-left: 20px;
+}
+
+
+
+
+        .resizer.right {
+            top: 0;
+            right: -5px;
+        }
+        .resizer.top {
+            top: -5px;
+            left: 0;
+        }
+        .resizer.bottom {
+            bottom: -5px;
+            left: 0;
         }
         .css-editor-container {
             display: flex;
@@ -133,6 +174,8 @@
             <div class="preview" id="preview">
                 <h2>Preview</h2>
                 <div id="previewContent"></div>
+
+
             </div>
             <button onclick="generateHTML()">Generate HTML</button>
             <label>
@@ -203,6 +246,25 @@
                     </label>
                     <input type="text" id="borderRadius" placeholder="e.g., 5px" onchange="updateCSS('border-radius', this.value)">
                 </div>
+
+
+                <div>
+                    <label><input type="checkbox" id="bg-checkbox" /> Phông nền</label>
+                    <div id="bg-controls" style="display: none;">
+                      <label>Độ mờ: <input type="range" id="bg-opacity" min="0" max="1" step="0.1" value="1" /></label>
+                    </div>
+                  </div>
+                  <div>
+                    <label><input type="checkbox" id="shadow-checkbox" /> Bóng</label>
+                    <div id="shadow-controls" style="display: none;">
+                      <label>Trái/Phải: <input type="range" id="shadow-x" min="-50" max="50" value="0" /></label>
+                      <label>Lên/Xuống: <input type="range" id="shadow-y" min="-50" max="50" value="0" /></label>
+                      <label>Độ mờ: <input type="range" id="shadow-blur" min="0" max="20" value="5" /></label>
+                    </div>
+                  </div>
+
+
+
                 <div class="section">
                     <h4>Text</h4>
                     <label for="fontFamily" class="tooltip">Font Family:
@@ -220,10 +282,83 @@
     </div>
     <script>
         let selectedElement = null;
+        let undoStack = [];
+        let redoStack = [];
+
+
+        
+
+
+
+
+
+
+
+        document.getElementById('bg-checkbox').addEventListener('change', function() {
+        const bgControls = document.getElementById('bg-controls');
+        if (this.checked) {
+            bgControls.style.display = 'block';
+            updateBackground();
+        } else {
+            bgControls.style.display = 'none';
+            selectedElement.style.backgroundColor = '';
+        }
+    });
+
+    document.getElementById('bg-opacity').addEventListener('input', function() {
+        updateBackground();
+    });
+
+    function updateBackground() {
+        if (!selectedElement) return;
+        const opacity = document.getElementById('bg-opacity').value;
+        selectedElement.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
+    }
+
+    document.getElementById('shadow-checkbox').addEventListener('change', function() {
+        const shadowControls = document.getElementById('shadow-controls');
+        if (this.checked) {
+            shadowControls.style.display = 'block';
+            updateShadow();
+        } else {
+            shadowControls.style.display = 'none';
+            selectedElement.style.textShadow = '';
+        }
+    });
+
+    document.getElementById('shadow-x').addEventListener('input', function() {
+        updateShadow();
+    });
+
+    document.getElementById('shadow-y').addEventListener('input', function() {
+        updateShadow();
+    });
+
+    document.getElementById('shadow-blur').addEventListener('input', function() {
+        updateShadow();
+    });
+
+    function updateShadow() {
+        if (!selectedElement) return;
+        const x = document.getElementById('shadow-x').value;
+        const y = document.getElementById('shadow-y').value;
+        const blur = document.getElementById('shadow-blur').value;
+        selectedElement.style.textShadow = `${x}px ${y}px ${blur}px rgba(0, 0, 0, 0.5)`;
+    }
+
+
+
+
+
+
+
+
+
 
         function updatePreview() {
             const htmlInput = document.getElementById('htmlInput').value;
             const previewContent = document.getElementById('previewContent');
+            saveState();
             previewContent.innerHTML = htmlInput;
             addHoverListeners();
         }
@@ -280,6 +415,7 @@
 
         function updateCSS(property, value) {
             if (!selectedElement) return;
+            saveState();
             selectedElement.style[property] = value;
         }
 
@@ -310,6 +446,71 @@
             }
 
             document.getElementById('htmlOutput').value = htmlOutput;
+        }
+
+        function saveState() {
+            const previewContent = document.getElementById('previewContent').innerHTML;
+            undoStack.push(previewContent);
+            redoStack = [];
+        }
+
+        function undo() {
+            if (undoStack.length > 0) {
+                const previewContent = document.getElementById('previewContent');
+                redoStack.push(previewContent.innerHTML);
+                previewContent.innerHTML = undoStack.pop();
+                addHoverListeners();
+            }
+        }
+
+        function redo() {
+            if (redoStack.length > 0) {
+                const previewContent = document.getElementById('previewContent');
+                undoStack.push(previewContent.innerHTML);
+                previewContent.innerHTML = redoStack.pop();
+                addHoverListeners();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'z') {
+                undo();
+            } else if (e.ctrlKey && e.key === 'y') {
+                redo();
+            }
+        });
+
+        const resizers = document.querySelectorAll('.resizer');
+        let currentResizer;
+
+        for (let resizer of resizers) {
+            resizer.addEventListener('mousedown', mousedown);
+
+            function mousedown(e) {
+                currentResizer = e.target;
+                window.addEventListener('mousemove', mousemove);
+                window.addEventListener('mouseup', mouseup);
+            }
+
+            function mousemove(e) {
+                const preview = document.getElementById('preview');
+                const rect = preview.getBoundingClientRect();
+
+                if (currentResizer.classList.contains('right')) {
+                    preview.style.width = e.pageX - rect.left + 'px';
+                } else if (currentResizer.classList.contains('left')) {
+                    preview.style.width = rect.width - (e.pageX - rect.left) + 'px';
+                } else if (currentResizer.classList.contains('bottom')) {
+                    preview.style.height = e.pageY - rect.top + 'px';
+                } else if (currentResizer.classList.contains('top')) {
+                    preview.style.height = rect.height - (e.pageY - rect.top) + 'px';
+                }
+            }
+
+            function mouseup() {
+                window.removeEventListener('mousemove', mousemove);
+                window.removeEventListener('mouseup', mouseup);
+            }
         }
     </script>
 </body>
