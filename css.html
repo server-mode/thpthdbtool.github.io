@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Editor cho học sinh THPT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #f3f3f3;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .html-input {
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .html-input textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+        }
+        .preview-container {
+            display: flex;
+            flex-direction: column;
+            width: 70%;
+            gap: 20px;
+            position: relative;
+        }
+        .preview {
+            flex-grow: 1;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: auto;
+            position: relative;
+            height: 700px;
+            resize: both; /* Cho phép thay đổi kích thước */
+        }
+        .resizer {
+            position: absolute;
+            width: 10px;
+            height: 100%;
+            background: #0078d4;
+            cursor: ew-resize;
+        }
+        .resizer.vertical {
+            width: 100%;
+            height: 10px;
+            cursor: ns-resize;
+        }
+        .resizer.left {
+            top: 0;
+            left: -5px;
+        }
+
+
+
+        #bg-controls,
+#shadow-controls {
+  margin-left: 20px;
+}
+
+
+
+
+        .resizer.right {
+            top: 0;
+            right: -5px;
+        }
+        .resizer.top {
+            top: -5px;
+            left: 0;
+        }
+        .resizer.bottom {
+            bottom: -5px;
+            left: 0;
+        }
+        .css-editor-container {
+            display: flex;
+            flex-direction: column;
+            width: 30%;
+            gap: 20px;
+        }
+        .css-editor {
+            width: 100%;
+            height: 500px; /* Đặt chiều cao cố định cho CSS Editor */
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow-y: auto; /* Thêm thanh cuộn dọc */
+        }
+        .css-editor h3 {
+            margin-top: 0;
+        }
+        .css-editor .section {
+            margin-bottom: 20px;
+        }
+        .css-editor .section label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .css-editor .section input,
+        .css-editor .section select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .css-editor .section .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        .css-editor .section .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position the tooltip above the text */
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .css-editor .section .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .output-container {
+            margin-top: 20px;
+            width: 100%;
+        }
+        .output-container textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS Editor cho học sinh THPT</h1>
+    <div class="container">
+        <div class="html-input">
+            <h2>HTML Input</h2>
+            <textarea id="htmlInput" placeholder="Điền code html của bạn vào đây..."></textarea>
+            <button onclick="updatePreview()">Update Preview</button>
+        </div>
+        <div class="preview-container">
+            <div class="preview" id="preview">
+                <h2>Preview</h2>
+                <div id="previewContent"></div>
+
+
+            </div>
+            <button onclick="generateHTML()">Generate HTML</button>
+            <label>
+                <input type="checkbox" id="globalStyle"> Apply global styles
+            </label>
+            <div class="output-container">
+                <h2>HTML Output</h2>
+                <textarea id="htmlOutput" readonly></textarea>
+            </div>
+        </div>
+        <div class="css-editor-container">
+            <div class="css-editor" id="cssEditor">
+                <h3>CSS Editor</h3>
+                <div class="section">
+                    <h4>Color</h4>
+                    <label for="color">Color:</label>
+                    <input type="color" id="color" onchange="updateCSS('color', this.value)">
+                </div>
+                <div class="section">
+                    <h4>Background và Borders</h4>
+                    <label for="backgroundColor">Background Color:</label>
+                    <input type="color" id="backgroundColor" onchange="updateCSS('background-color', this.value)">
+                    <label for="border">Border:</label>
+                    <input type="text" id="border" placeholder="e.g., 1px solid #000" onchange="updateCSS('border', this.value)">
+                </div>
+                <div class="section">
+                    <h4>Box Model</h4>
+                    <label for="width" class="tooltip">Width:
+                        <span class="tooltiptext">Chiều rộng của phần tử</span>
+                    </label>
+                    <input type="text" id="width" placeholder="e.g., 100px" onchange="updateCSS('width', this.value)">
+                    <label for="height" class="tooltip">Height:
+                        <span class="tooltiptext">Chiều cao của phần tử</span>
+                    </label>
+                    <input type="text" id="height" placeholder="e.g., 100px" onchange="updateCSS('height', this.value)">
+                    <label for="padding" class="tooltip">Padding:
+                        <span class="tooltiptext">Khoảng cách bên trong phần tử</span>
+                    </label>
+                    <input type="text" id="padding" placeholder="e.g., 10px" onchange="updateCSS('padding', this.value)">
+                    <label for="margin" class="tooltip">Margin:
+                        <span class="tooltiptext">Khoảng cách bên ngoài phần tử</span>
+                    </label>
+                    <input type="text" id="margin" placeholder="e.g., 10px" onchange="updateCSS('margin', this.value)">
+                    <label for="borderColor" class="tooltip">Border Color:
+                        <span class="tooltiptext">Màu viền của phần tử</span>
+                    </label>
+                    <input type="color" id="borderColor" onchange="updateCSS('border-color', this.value)">
+                    <label for="borderWidth" class="tooltip">Border Width:
+                        <span class="tooltiptext">Độ dày viền của phần tử</span>
+                    </label>
+                    <input type="text" id="borderWidth" placeholder="e.g., 1px" onchange="updateCSS('border-width', this.value)">
+                    <label for="borderStyle" class="tooltip">Border Style:
+                        <span class="tooltiptext">Kiểu viền của phần tử</span>
+                    </label>
+                    <select id="borderStyle" onchange="updateCSS('border-style', this.value)">
+                        <option value="none">None</option>
+                        <option value="solid">Solid</option>
+                        <option value="dashed">Dashed</option>
+                        <option value="dotted">Dotted</option>
+                        <option value="double">Double</option>
+                        <option value="groove">Groove</option>
+                        <option value="ridge">Ridge</option>
+                        <option value="inset">Inset</option>
+                        <option value="outset">Outset</option>
+                    </select>
+                    <label for="borderRadius" class="tooltip">Border Radius:
+                        <span class="tooltiptext">Bo góc khung của phần tử</span>
+                    </label>
+                    <input type="text" id="borderRadius" placeholder="e.g., 5px" onchange="updateCSS('border-radius', this.value)">
+                </div>
+
+
+                <div>
+                    <label><input type="checkbox" id="bg-checkbox" /> Phông nền</label>
+                    <div id="bg-controls" style="display: none;">
+                      <label>Độ mờ: <input type="range" id="bg-opacity" min="0" max="1" step="0.1" value="1" /></label>
+                    </div>
+                  </div>
+                  <div>
+                    <label><input type="checkbox" id="shadow-checkbox" /> Bóng</label>
+                    <div id="shadow-controls" style="display: none;">
+                      <label>Trái/Phải: <input type="range" id="shadow-x" min="-50" max="50" value="0" /></label>
+                      <label>Lên/Xuống: <input type="range" id="shadow-y" min="-50" max="50" value="0" /></label>
+                      <label>Độ mờ: <input type="range" id="shadow-blur" min="0" max="20" value="5" /></label>
+                    </div>
+                  </div>
+
+
+
+                <div class="section">
+                    <h4>Text</h4>
+                    <label for="fontFamily" class="tooltip">Font Family:
+                        <span class="tooltiptext">Phông chữ của phần tử</span>
+                    </label>
+                    <input type="text" id="fontFamily" placeholder="e.g., Arial, sans-serif" onchange="updateCSS('font-family', this.value)">
+                    <label for="fontSize" class="tooltip">Font Size:
+                        <span class="tooltiptext">Cỡ chữ của phần tử</span>
+                    </label>
+                    <input type="text" id="fontSize" placeholder="e.g., 16px" onchange="updateCSS('font-size', this.value)">
+                </div>
+                <!-- Add more sections for other CSS properties as needed -->
+            </div>
+        </div>
+    </div>
+    <script>
+        let selectedElement = null;
+        let undoStack = [];
+        let redoStack = [];
+
+
+        
+
+
+
+
+
+
+
+        document.getElementById('bg-checkbox').addEventListener('change', function() {
+        const bgControls = document.getElementById('bg-controls');
+        if (this.checked) {
+            bgControls.style.display = 'block';
+            updateBackground();
+        } else {
+            bgControls.style.display = 'none';
+            selectedElement.style.backgroundColor = '';
+        }
+    });
+
+    document.getElementById('bg-opacity').addEventListener('input', function() {
+        updateBackground();
+    });
+
+    function updateBackground() {
+        if (!selectedElement) return;
+        const opacity = document.getElementById('bg-opacity').value;
+        selectedElement.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
+    }
+
+    document.getElementById('shadow-checkbox').addEventListener('change', function() {
+        const shadowControls = document.getElementById('shadow-controls');
+        if (this.checked) {
+            shadowControls.style.display = 'block';
+            updateShadow();
+        } else {
+            shadowControls.style.display = 'none';
+            selectedElement.style.textShadow = '';
+        }
+    });
+
+    document.getElementById('shadow-x').addEventListener('input', function() {
+        updateShadow();
+    });
+
+    document.getElementById('shadow-y').addEventListener('input', function() {
+        updateShadow();
+    });
+
+    document.getElementById('shadow-blur').addEventListener('input', function() {
+        updateShadow();
+    });
+
+    function updateShadow() {
+        if (!selectedElement) return;
+        const x = document.getElementById('shadow-x').value;
+        const y = document.getElementById('shadow-y').value;
+        const blur = document.getElementById('shadow-blur').value;
+        selectedElement.style.textShadow = `${x}px ${y}px ${blur}px rgba(0, 0, 0, 0.5)`;
+    }
+
+
+
+
+
+
+
+
+
+
+        function updatePreview() {
+            const htmlInput = document.getElementById('htmlInput').value;
+            const previewContent = document.getElementById('previewContent');
+            saveState();
+            previewContent.innerHTML = htmlInput;
+            addHoverListeners();
+        }
+
+        function addHoverListeners() {
+            const elements = document.querySelectorAll('#previewContent *');
+            elements.forEach(element => {
+                element.addEventListener('mouseover', () => {
+                    highlightElement(element);
+                });
+                element.addEventListener('mouseout', () => {
+                    removeHighlight(element);
+                });
+                element.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectElement(element);
+                });
+            });
+        }
+
+        function highlightElement(element) {
+            element.style.outline = '2px solid #0078d4';
+        }
+
+        function removeHighlight(element) {
+            element.style.outline = '';
+        }
+
+        function selectElement(element) {
+            if (selectedElement) {
+                selectedElement.style.outline = '';
+            }
+            selectedElement = element;
+            element.style.outline = '2px solid #ff0000';
+            updateCSSEditor();
+        }
+
+        function updateCSSEditor() {
+            if (!selectedElement) return;
+            document.getElementById('color').value = rgbToHex(window.getComputedStyle(selectedElement).color);
+            document.getElementById('backgroundColor').value = rgbToHex(window.getComputedStyle(selectedElement).backgroundColor);
+            document.getElementById('border').value = window.getComputedStyle(selectedElement).border;
+            document.getElementById('width').value = window.getComputedStyle(selectedElement).width;
+            document.getElementById('height').value = window.getComputedStyle(selectedElement).height;
+            document.getElementById('padding').value = window.getComputedStyle(selectedElement).padding;
+            document.getElementById('margin').value = window.getComputedStyle(selectedElement).margin;
+            document.getElementById('borderColor').value = rgbToHex(window.getComputedStyle(selectedElement).borderColor);
+            document.getElementById('borderWidth').value = window.getComputedStyle(selectedElement).borderWidth;
+            document.getElementById('borderStyle').value = window.getComputedStyle(selectedElement).borderStyle;
+            document.getElementById('borderRadius').value = window.getComputedStyle(selectedElement).borderRadius;
+            document.getElementById('fontFamily').value = window.getComputedStyle(selectedElement).fontFamily;
+            document.getElementById('fontSize').value = window.getComputedStyle(selectedElement).fontSize;
+        }
+
+        function updateCSS(property, value) {
+            if (!selectedElement) return;
+            saveState();
+            selectedElement.style[property] = value;
+        }
+
+        function rgbToHex(rgb) {
+            const result = rgb.match(/\d+/g);
+            return `#${((1 << 24) + (parseInt(result[0]) << 16) + (parseInt(result[1]) << 8) + parseInt(result[2])).toString(16).slice(1)}`;
+        }
+
+        function generateHTML() {
+            const previewContent = document.getElementById('previewContent');
+            const globalStyle = document.getElementById('globalStyle').checked;
+            let htmlOutput = '';
+
+            if (globalStyle) {
+                let styles = '';
+                const elements = previewContent.querySelectorAll('*');
+                elements.forEach(element => {
+                    const style = element.getAttribute('style');
+                    if (style) {
+                        const tagName = element.tagName.toLowerCase();
+                        styles += `${tagName} { ${style} }\n`;
+                        element.removeAttribute('style');
+                    }
+                });
+                htmlOutput = `<html>\n<head>\n<style>\n${styles}</style>\n</head>\n<body>\n${previewContent.innerHTML}\n</body>\n</html>`;
+            } else {
+                htmlOutput = `<html>\n<head>\n</head>\n<body>\n${previewContent.innerHTML}\n</body>\n</html>`;
+            }
+
+            document.getElementById('htmlOutput').value = htmlOutput;
+        }
+
+        function saveState() {
+            const previewContent = document.getElementById('previewContent').innerHTML;
+            undoStack.push(previewContent);
+            redoStack = [];
+        }
+
+        function undo() {
+            if (undoStack.length > 0) {
+                const previewContent = document.getElementById('previewContent');
+                redoStack.push(previewContent.innerHTML);
+                previewContent.innerHTML = undoStack.pop();
+                addHoverListeners();
+            }
+        }
+
+        function redo() {
+            if (redoStack.length > 0) {
+                const previewContent = document.getElementById('previewContent');
+                undoStack.push(previewContent.innerHTML);
+                previewContent.innerHTML = redoStack.pop();
+                addHoverListeners();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'z') {
+                undo();
+            } else if (e.ctrlKey && e.key === 'y') {
+                redo();
+            }
+        });
+
+        const resizers = document.querySelectorAll('.resizer');
+        let currentResizer;
+
+        for (let resizer of resizers) {
+            resizer.addEventListener('mousedown', mousedown);
+
+            function mousedown(e) {
+                currentResizer = e.target;
+                window.addEventListener('mousemove', mousemove);
+                window.addEventListener('mouseup', mouseup);
+            }
+
+            function mousemove(e) {
+                const preview = document.getElementById('preview');
+                const rect = preview.getBoundingClientRect();
+
+                if (currentResizer.classList.contains('right')) {
+                    preview.style.width = e.pageX - rect.left + 'px';
+                } else if (currentResizer.classList.contains('left')) {
+                    preview.style.width = rect.width - (e.pageX - rect.left) + 'px';
+                } else if (currentResizer.classList.contains('bottom')) {
+                    preview.style.height = e.pageY - rect.top + 'px';
+                } else if (currentResizer.classList.contains('top')) {
+                    preview.style.height = rect.height - (e.pageY - rect.top) + 'px';
+                }
+            }
+
+            function mouseup() {
+                window.removeEventListener('mousemove', mousemove);
+                window.removeEventListener('mouseup', mouseup);
+            }
+        }
+    </script>
+</body>
+</html>

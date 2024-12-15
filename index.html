@@ -3,153 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web editor đối phó với giáo viên tin HDB</title>
+    <title>Tool gian lận môn Tin THPT</title>
+    <meta name="description" content="Tổ hợp tool gian lận môn tin THPT miễn phí">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-        }
-        .editor-container {
-            display: flex;
-            gap: 10px;
-            margin-top: 2px;
-        }
-        .content {
-            width: 100%;
-            max-width: 800px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #ffffff;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+            text-align: center;
+            opacity: 1; /* Đặt opacity ban đầu là 1 */
+            animation: fadeIn 1s forwards; /* Animation fade-in */
         }
-        .editor {
-            flex-grow: 1;
-            border: 1px solid #ccc;
-            padding: 15px;
-            min-height: 400px;
-            overflow-y: auto;
-            background-color: #f9f9f9;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+        .fade-out {
+            animation: fadeOut 1s forwards;
+        }
+        .background-art {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(120deg, rgba(0, 120, 212, 0.3), rgba(0, 120, 212, 0.1));
+            animation: moveBackground 10s infinite linear;
+            z-index: -1;
+        }
+        @keyframes moveBackground {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+            color: #0078d4;
+        }
+        .header p {
+            font-size: 16px;
+            margin: 5px 0 20px;
+            color: #555;
+        }
+        .menu-container {
+            display: flex;
+            gap: 20px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+        .menu-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 150px;
+            height: 150px;
+            background-color: rgba(0, 120, 212, 0.2);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
             position: relative;
         }
-        .block-menu {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 5px;
-        }
-        .block-menu button {
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-        .table-options, .list-options {
-            display: none;
-            flex-direction: column;
-            gap: 5px;
-            margin-top: 5px;
-        }
-        .table-options input {
-            padding: 5px;
-        }
-        .table-options label {
-            font-size: 12px; /* Giảm kích cỡ chữ của label */
-        }
-        .table-options button, 
-        .table-options label {
-            font-size: inherit; /* Đặt cỡ nút theo cỡ chữ */
-            padding: 1px 3px; /* Thu nhỏ khoảng cách */
-            cursor: pointer;
-            width: 50%; /* Nút trải đều theo chiều ngang */
-            text-align: left; /* Căn trái để gọn */
-        }
-        .context-menu {
-            display: none;
+        .menu-button::before {
+            content: '';
             position: absolute;
-            background-color: white;
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-        .context-menu button {
-            display: block;
+            top: 0;
+            left: 0;
             width: 100%;
-            padding: 5px 10px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            text-align: left;
+            height: 100%;
+            background-color: rgba(0, 120, 212, 0.5);
+            border-radius: 10px;
+            z-index: -1;
+            transition: opacity 0.3s;
         }
-        .context-menu button:hover {
-            background-color: #f0f0f0;
+        .menu-button:hover::before {
+            opacity: 0.7;
+        }
+        .menu-button img {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+        .menu-button span {
+            font-size: 18px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-
-<div class="content">
-
-    <h2>Web editor by 12a12 k45 THPT Hoài Đức B V4.1.9</h2>
-    <div class="format-buttons">
-        <button onclick="formatText('bold')">B</button>
-        <button onclick="formatText('italic')">I</button>
-        <button onclick="formatText('underline')">U</button>
-        <button onclick="formatText('line-through')">U1</button>
-        <button onclick="formatText('overline')">U2</button>
-        <button onclick="formatText('subscript')">T</button>
-        <button onclick="formatText('superscript')">T1</button>
+    <div class="background-art"></div>
+    <div class="header">
+        <h1>Chào mừng đến với tổ hợp tool hỗ trợ môn tin THPT</h1>
+        <p>"Xã hội này chỉ có làm chịu khó cần cù thì siêng năng chỉ có làm thì mới có ăn không là phải dùng tools"</p>
     </div>
-
-    <div class="editor-container">
-        <div class="table-options" id="tableOptions">
-            <label>Colspan: <input type="number" id="colspan" min="1" value="1"></label>
-            <label>Rowspan: <input type="number" id="rowspan" min="1" value="1"></label>
-            <button onclick="applyCellOptions()">Apply to Cell</button>
-            <button onclick="addTableRow()">Add Row</button>
-            <button onclick="addTableColumn()">Add Column</button>
-            <button onclick="deleteCell()">Delete Cell</button>
-            <button onclick="toggleCellTag()">Toggle th/td</button>
-            <button onclick="clearCellContent()">Clear Content</button>
+    <div class="menu-container">
+        <div class="menu-item">
+            <button class="menu-button" onclick="navigateTo('css.html')">
+                <img src="https://img.icons8.com/color/48/000000/css3.png" alt="CSS Icon">
+                <span>CSS</span>
+            </button>
+            <div class="status">Online</div>
         </div>
-    
-        <div id="editor" class="editor" contenteditable="true"></div>
+        <div class="menu-item">
+            <button class="menu-button" onclick="navigateTo('html.html')">
+                <img src="https://img.icons8.com/color/48/000000/html-5.png" alt="HTML Icon">
+                <span>HTML</span>
+            </button>
+            <div class="status">Online</div>
+        </div>
+        <div class="menu-item">
+            <button class="menu-button">
+                <img src="https://img.icons8.com/color/48/000000/python.png" alt="Python Icon">
+                <span>Python</span>
+            </button>
+            <div class="status">Đang Thử Nghiệm</div>
+        </div>
+        <div class="menu-item">
+            <button class="menu-button">
+                <img src="https://img.icons8.com/color/48/000000/mysql.png" alt="MySQL Icon">
+                <span>MySQL</span>
+            </button>
+            <div class="status">Đang Thử Nghiệm</div>
+        </div>
+        <div class="menu-item">
+            <button class="menu-button">
+                <img src="https://img.icons8.com/?size=100&id=121160&format=png&color=000000" alt="Access Icon">
+                <span>Access</span>
+            </button>
+            <div class="status">Đang Thử Nghiệm</div>
+        </div>
     </div>
-
-    <div class="block-menu" id="blockMenu">
-        <button onclick="addTag('p')">Paragraph (p)</button>
-        <button onclick="addTag('h1')">Header 1 (h1)</button>
-        <button onclick="addTag('h2')">Header 2 (h2)</button>
-        <button onclick="addTag('h3')">Header 3 (h3)</button>
-        <button onclick="addTag('h4')">Header 4 (h4)</button>
-        <button onclick="addTag('h5')">Header 5 (h5)</button>
-        <button onclick="addTag('h6')">Header 6 (h6)</button>
-        <button onclick="addTag('b')">Bold (b)</button>
-        <button onclick="addTag('i')">Italic (i)</button>
-        <button onclick="addTag('u')">Underline (u)</button>
-        <button onclick="startList('ul')">Unordered List (ul)</button>
-        <button onclick="startList('ol')">Ordered List (ol)</button>
-        <button onclick="addListItem()">Add List Item (li)</button>
-        <button id="finishListButton" onclick="finishList()" style="display:none;">Finish List</button>
-        <button onclick="addTag('blockquote')">Blockquote</button>
-        <button onclick="addTag('code')">Code</button>
-        <button onclick="addTable()">Table</button>
-    </div>
-    <button onclick="generateHTML()">Generate HTML</button>
-
-    <div class="block-menu" id="blockMenu">
-        <button onclick="addTable()">Add Table</button>
-    </div>
-
-    <div class="list-options" id="listOptions">
-        <button onclick="addListItem()">Add List Item</button>
-        <button onclick="finishList()">Finish List</button>
-    </div>
-
-    <div class="context-menu" id="contextMenu">
-        <button onclick="deleteCell()">Delete Cell</button>
-    </div>
-</div>
-
-<script src="code.js"></script>
-
+    <footer>
+        <p>@Đừng cố tìm nick face của tôi</p>
+    </footer>
+    <script>
+        function navigateTo(url) {
+            document.body.classList.add('fade-out');
+            setTimeout(() => {
+                window.location.href = url;
+            }, 1000);
+        }
+    </script>
 </body>
 </html>

@@ -222,10 +222,17 @@ function generateHTML() {
         const innerHTML = element.innerHTML.trim();
         const attributes = Array.from(element.attributes).map(attr => `${attr.name}="${attr.value}"`).join(' ');
 
-        htmlContent += `<${tagName} ${attributes}>${innerHTML}</${tagName}>\n`;
+        if (tagName === 'table') {
+            htmlContent += `<${tagName} ${attributes}>\n${formatTableContent(element.innerHTML)}\n</${tagName}>\n`;
+        } else {
+            htmlContent += `<${tagName} ${attributes}>${innerHTML}</${tagName}>\n`;
+        }
     });
 
     // Hiển thị HTML đã tạo ra (có thể thay đổi để hiển thị ở nơi khác)
-    console.log(htmlContent);
-    alert('HTML đã được tạo ra. Kiểm tra console để xem kết quả.');
+    document.getElementById('htmlOutput').value = htmlContent;
+}
+
+function formatTableContent(content) {
+    return content.replace(/></g, '>\n<');
 }
